@@ -124,7 +124,7 @@ abstract class FilePicker extends PlatformInterface {
   /// `dialogTitle` can be set to display a custom title on desktop platforms. It will be ignored on Web & IO.
   ///
   /// Note: Some Android paths are protected, hence can't be accessed and will return `/` instead.
-  Future<String?> getDirectoryPath({String? dialogTitle}) async =>
+  Future<Map<String, String>?> getDirectoryPath({String? dialogTitle}) async =>
       throw UnimplementedError('getDirectoryPath() has not been implemented.');
 
   /// Opens a save file dialog which lets the user select a file path and a file

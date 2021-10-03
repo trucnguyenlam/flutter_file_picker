@@ -46,7 +46,7 @@ class FilePickerMacOS extends FilePicker {
   }
 
   @override
-  Future<String?> getDirectoryPath({
+  Future<Map<String, String>?> getDirectoryPath({
     String? dialogTitle,
   }) async {
     final String executable = await isExecutableOnPath('osascript');
@@ -63,7 +63,8 @@ class FilePickerMacOS extends FilePicker {
       return null;
     }
 
-    return resultStringToFilePaths(directorySelectionResult).first;
+    var dirUri = resultStringToFilePaths(directorySelectionResult).first;
+    return {'fileUri': dirUri};
   }
 
   @override

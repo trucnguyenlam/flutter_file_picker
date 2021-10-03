@@ -73,7 +73,7 @@ public class FilePickerDelegate implements PluginRegistry.ActivityResultListener
     @Override
     public boolean onActivityResult(final int requestCode, final int resultCode, final Intent data) {
 
-        if(type == null) {
+        if (type == null) {
             return false;
         }
 
@@ -81,6 +81,11 @@ public class FilePickerDelegate implements PluginRegistry.ActivityResultListener
 
             if (eventSink != null) {
                 eventSink.success(true);
+            }
+
+            if (type.equals("dir") && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && data.getData() != null) {
+                this.activity.getContentResolver().takePersistableUriPermission(data.getData(),
+                        Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
             }
 
             new Thread(new Runnable() {
@@ -96,7 +101,7 @@ public class FilePickerDelegate implements PluginRegistry.ActivityResultListener
                                 final Uri currentUri = data.getClipData().getItemAt(currentItem).getUri();
                                 final FileInfo file = FileUtils.openFileStream(FilePickerDelegate.this.activity, currentUri, loadDataToMemory);
 
-                                if(file != null) {
+                                if (file != null) {
                                     files.add(file);
                                     Log.d(FilePickerDelegate.TAG, "[MultiFilePick] File #" + currentItem + " - URI: " + currentUri.getPath());
                                 }
@@ -110,11 +115,15 @@ public class FilePickerDelegate implements PluginRegistry.ActivityResultListener
                             if (type.equals("dir") && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                                 uri = DocumentsContract.buildDocumentUriUsingTree(uri, DocumentsContract.getTreeDocumentId(uri));
 
-                                Log.d(FilePickerDelegate.TAG, "[SingleFilePick] File URI:" + uri.toString());
+                                Log.d(FilePickerDelegate.TAG, "[SingleFilePick] File URI: " + uri.toString());
                                 final String dirPath = FileUtils.getFullPathFromTreeUri(uri, activity);
 
-                                if(dirPath != null) {
-                                    finishWithSuccess(dirPath);
+                                if (dirPath != null) {
+                                    // return with map instead
+                                    final HashMap<String, String> dirUris = new HashMap<>();
+                                    dirUris.put("contentUri", uri.toString());
+                                    dirUris.put("fileUri", dirPath);
+                                    finishWithSuccess(dirUris);
                                 } else {
                                     finishWithError("unknown_path", "Failed to retrieve directory path.");
                                 }
@@ -123,7 +132,7 @@ public class FilePickerDelegate implements PluginRegistry.ActivityResultListener
 
                             final FileInfo file = FileUtils.openFileStream(FilePickerDelegate.this.activity, uri, loadDataToMemory);
 
-                            if(file != null) {
+                            if (file != null) {
                                 files.add(file);
                             }
 
@@ -196,6 +205,7 @@ public class FilePickerDelegate implements PluginRegistry.ActivityResultListener
 
         if (type.equals("dir")) {
             intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+            intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
         } else {
             if (type.equals("image/*")) {
                 intent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
@@ -256,10 +266,10 @@ public class FilePickerDelegate implements PluginRegistry.ActivityResultListener
         // Temporary fix, remove this null-check after Flutter Engine 1.14 has landed on stable
         if (this.pendingResult != null) {
 
-            if(data != null && !(data instanceof String)) {
+            if (data != null && !(data instanceof String) && !(data instanceof HashMap)) {
                 final ArrayList<HashMap<String, Object>> files = new ArrayList<>();
 
-                for (FileInfo file : (ArrayList<FileInfo>)data) {
+                for (FileInfo file : (ArrayList<FileInfo>) data) {
                     files.add(file.toMap());
                 }
                 data = files;

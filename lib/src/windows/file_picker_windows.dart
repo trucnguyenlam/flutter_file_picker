@@ -55,7 +55,7 @@ class FilePickerWindows extends FilePicker {
   }
 
   @override
-  Future<String?> getDirectoryPath({
+  Future<Map<String, String>?> getDirectoryPath({
     String? dialogTitle,
   }) {
     final pathIdPointer = _pickDirectory(dialogTitle ?? defaultDialogTitle);
@@ -63,7 +63,7 @@ class FilePickerWindows extends FilePicker {
       return Future.value(null);
     }
     return Future.value(
-      _getPathFromItemIdentifierList(pathIdPointer),
+      {'fileUri': _getPathFromItemIdentifierList(pathIdPointer)},
     );
   }
 

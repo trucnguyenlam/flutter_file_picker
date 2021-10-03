@@ -49,7 +49,7 @@ class FilePickerLinux extends FilePicker {
   }
 
   @override
-  Future<String?> getDirectoryPath({
+  Future<Map<String, String>?> getDirectoryPath({
     String? dialogTitle,
   }) async {
     final executable = await _getPathToExecutable();
@@ -57,7 +57,11 @@ class FilePickerLinux extends FilePicker {
       dialogTitle ?? defaultDialogTitle,
       pickDirectory: true,
     );
-    return await runExecutableWithArguments(executable, arguments);
+    var dirUri = await runExecutableWithArguments(executable, arguments);
+    if (dirUri != null) {
+      return {'fileUri': dirUri};
+    }
+    return null;
   }
 
   @override
