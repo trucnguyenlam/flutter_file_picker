@@ -35,6 +35,7 @@ public class FilePickerDelegate implements PluginRegistry.ActivityResultListener
     private boolean isMultipleSelection = false;
     private boolean loadDataToMemory = false;
     private String type;
+    private String initialUri;
     private String[] allowedExtensions;
     private EventChannel.EventSink eventSink;
 
@@ -206,6 +207,9 @@ public class FilePickerDelegate implements PluginRegistry.ActivityResultListener
         if (type.equals("dir")) {
             intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
             intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+            if (initialUri != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                intent.putExtra("android.provider.extra.INITIAL_URI", Uri.parse(initialUri));
+            }
         } else {
             if (type.equals("image/*")) {
                 intent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
@@ -237,7 +241,7 @@ public class FilePickerDelegate implements PluginRegistry.ActivityResultListener
     }
 
     @SuppressWarnings("deprecation")
-    public void startFileExplorer(final String type, final boolean isMultipleSelection, final boolean withData, final String[] allowedExtensions, final MethodChannel.Result result) {
+    public void startFileExplorer(final String type, final boolean isMultipleSelection, final boolean withData, final String[] allowedExtensions, final String initialUri, final MethodChannel.Result result) {
 
         if (!this.setPendingMethodCallAndResult(result)) {
             finishWithAlreadyActiveError(result);
@@ -245,6 +249,7 @@ public class FilePickerDelegate implements PluginRegistry.ActivityResultListener
         }
 
         this.type = type;
+        this.initialUri = initialUri;
         this.isMultipleSelection = isMultipleSelection;
         this.loadDataToMemory = withData;
         this.allowedExtensions = allowedExtensions;

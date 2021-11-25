@@ -1,16 +1,22 @@
 package com.mr.flutter.plugin.filepicker;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Application;
+import android.content.Context;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.storage.StorageManager;
+import android.os.storage.StorageVolume;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.DefaultLifecycleObserver;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleOwner;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -156,6 +162,7 @@ public class FilePickerPlugin implements MethodChannel.MethodCallHandler, Flutte
 
         fileType = FilePickerPlugin.resolveType(call.method);
         String[] allowedExtensions = null;
+        String initialUri = null;
 
         if (fileType == null) {
             result.notImplemented();
@@ -163,12 +170,14 @@ public class FilePickerPlugin implements MethodChannel.MethodCallHandler, Flutte
             isMultipleSelection = (boolean) arguments.get("allowMultipleSelection");
             withData = (boolean) arguments.get("withData");
             allowedExtensions = FileUtils.getMimeTypes((ArrayList<String>) arguments.get("allowedExtensions"));
+        } else if (fileType == "dir") {
+            initialUri = (String) arguments.get("initialUri");
         }
 
         if (call.method != null && call.method.equals("custom") && (allowedExtensions == null || allowedExtensions.length == 0)) {
             result.error(TAG, "Unsupported filter. Make sure that you are only using the extension without the dot, (ie., jpg instead of .jpg). This could also have happened because you are using an unsupported file extension.  If the problem persists, you may want to consider using FileType.all instead.", null);
         } else {
-            this.delegate.startFileExplorer(fileType, isMultipleSelection, withData, allowedExtensions, result);
+            this.delegate.startFileExplorer(fileType, isMultipleSelection, withData, allowedExtensions, initialUri, result);
         }
 
     }

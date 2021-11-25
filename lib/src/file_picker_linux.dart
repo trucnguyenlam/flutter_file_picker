@@ -51,6 +51,7 @@ class FilePickerLinux extends FilePicker {
   @override
   Future<Map<String, String>?> getDirectoryPath({
     String? dialogTitle,
+    String? initialUri,
   }) async {
     final executable = await _getPathToExecutable();
     final arguments = generateCommandLineArguments(

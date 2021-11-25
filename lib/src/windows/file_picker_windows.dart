@@ -57,6 +57,7 @@ class FilePickerWindows extends FilePicker {
   @override
   Future<Map<String, String>?> getDirectoryPath({
     String? dialogTitle,
+    String? initialUri,
   }) {
     final pathIdPointer = _pickDirectory(dialogTitle ?? defaultDialogTitle);
     if (pathIdPointer == null) {
