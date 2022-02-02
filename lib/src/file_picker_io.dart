@@ -49,7 +49,12 @@ class FilePickerIO extends FilePicker {
   @override
   Future<Map<String, String>?> getDirectoryPath({String? dialogTitle, String? initialUri}) async {
     try {
-      return Map<String, String>.from(await _channel.invokeMethod('dir', {'initialUri': initialUri}));
+      final ret = await _channel.invokeMethod('dir', {'initialUri': initialUri});
+      if (Platform.isAndroid) {
+        return Map<String, String>.from(ret);
+      } else if (Platform.isIOS) {
+        return {'fileUri': ret};
+      }
     } on PlatformException catch (ex) {
       if (ex.code == "unknown_path") {
         print(
