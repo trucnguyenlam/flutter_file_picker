@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
-import 'package:file_picker/src/platform_file.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
@@ -31,8 +30,9 @@ class FilePickerIO extends FilePicker {
     bool allowMultiple = false,
     bool? withData = false,
     bool? withReadStream = false,
-  }) =>
-      _getPath(
+  }) {
+    if (Platform.isAndroid) {
+      return _getPath(
         type,
         allowMultiple,
         allowCompression,
@@ -41,6 +41,10 @@ class FilePickerIO extends FilePicker {
         withData,
         withReadStream,
       );
+    } else {
+      throw UnimplementedError('${Platform.operatingSystem} is not supported');
+    }
+  }
 
   @override
   Future<bool?> clearTemporaryFiles() async =>
