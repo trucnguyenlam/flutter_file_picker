@@ -204,7 +204,7 @@ public class FileUtils {
         String volumePath = getVolumePath(volumeId, con);
         FileInfo.Builder fileInfo = new FileInfo.Builder();
 
-        // Workaround in the case of volume id = home
+        // Workaround in the case of volume id = home, https://github.com/miguelpruivo/flutter_file_picker/issues/692
         if (volumeId != null && volumeId.equals("home")) {
             volumePath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS).getPath();;
         }
