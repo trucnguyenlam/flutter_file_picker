@@ -31,7 +31,8 @@ android {
     lintOptions {
         disable 'InvalidPackage'
     }
-      dependencies {
+
+    dependencies {
         implementation 'androidx.core:core:1.0.2'
         implementation 'androidx.annotation:annotation:1.0.0'
         implementation "androidx.lifecycle:lifecycle-runtime:2.1.0"

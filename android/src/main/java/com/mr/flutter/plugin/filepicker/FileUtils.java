@@ -76,7 +76,7 @@ public class FileUtils {
                     result = result.substring(cut + 1);
                 }
             }
-        } catch (Exception ex){
+        } catch (Exception ex) {
             Log.e(TAG, "Failed to handle file name: " + ex.toString());
         }
 
@@ -116,7 +116,7 @@ public class FileUtils {
             }
             fileInfo.withData(bytes);
 
-        }  catch (Exception e) {
+        } catch (Exception e) {
             Log.e(TAG, "Failed to load bytes into memory with error " + e.toString() + ". Probably the file is too big to fit device memory. Bytes won't be added to the file this time.");
         }
     }
@@ -131,7 +131,7 @@ public class FileUtils {
 
         final File file = new File(path);
 
-        if(!file.exists()) {
+        if (!file.exists()) {
             file.getParentFile().mkdirs();
             try {
                 fos = new FileOutputStream(path);
@@ -164,7 +164,7 @@ public class FileUtils {
 
         Log.d(TAG, "File loaded and cached at:" + path);
 
-        if(withData) {
+        if (withData) {
             loadData(file, fileInfo);
         }
 
@@ -200,8 +200,14 @@ public class FileUtils {
             }
         }
 
-        String volumePath = getVolumePath(getVolumeIdFromTreeUri(treeUri), con);
+        String volumeId = getVolumeIdFromTreeUri(treeUri);
+        String volumePath = getVolumePath(volumeId, con);
         FileInfo.Builder fileInfo = new FileInfo.Builder();
+
+        // Workaround in the case of volume id = home
+        if (volumeId != null && volumeId.equals("home")) {
+            volumePath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS).getPath();;
+        }
 
         if (volumePath == null) {
             return File.separator;
@@ -218,8 +224,7 @@ public class FileUtils {
         if (documentPath.length() > 0) {
             if (documentPath.startsWith(File.separator)) {
                 return volumePath + documentPath;
-            }
-            else {
+            } else {
                 return volumePath + File.separator + documentPath;
             }
         } else {
