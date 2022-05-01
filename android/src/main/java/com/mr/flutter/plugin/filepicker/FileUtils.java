@@ -8,6 +8,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.os.storage.StorageManager;
+import android.os.storage.StorageVolume;
 import android.provider.DocumentsContract;
 import android.provider.OpenableColumns;
 import android.util.Log;
@@ -206,7 +207,12 @@ public class FileUtils {
 
         // Workaround in the case of volume id = home, https://github.com/miguelpruivo/flutter_file_picker/issues/692
         if (volumeId != null && volumeId.equals("home")) {
-            volumePath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS).getPath();;
+            volumePath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS).getPath();
+        }
+
+        if (volumePath == null) {
+            // return more volumes, from mass storage
+            volumePath = getVolumePathNewApi(volumeId, con);
         }
 
         if (volumePath == null) {
@@ -279,6 +285,30 @@ public class FileUtils {
                 // other volumes?
                 if (uuid != null && uuid.equals(volumeId)) {
                     return getDirectoryPath(storageVolumeClazz, storageVolumeElement);
+                }
+            }
+            // not found.
+            return null;
+        } catch (Exception ex) {
+            return null;
+        }
+    }
+
+    private static String getVolumePathNewApi(final String volumeId, Context context) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) return null;
+        try {
+            StorageManager mStorageManager = (StorageManager) context.getSystemService(Context.STORAGE_SERVICE);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                for (StorageVolume storageVolume : mStorageManager.getStorageVolumes()) {
+                    String uuid = storageVolume.getUuid();
+                    // primary volume?
+                    if (PRIMARY_VOLUME_NAME.equals(volumeId)) {
+                        return getDirectoryPath(storageVolume.getClass(), storageVolume);
+                    }
+                    // other volumes?
+                    if (uuid != null && uuid.equals(volumeId)) {
+                        return getDirectoryPath(storageVolume.getClass(), storageVolume);
+                    }
                 }
             }
             // not found.
