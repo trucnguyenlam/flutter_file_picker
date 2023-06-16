@@ -15,6 +15,7 @@ import android.util.Log;
 import android.webkit.MimeTypeMap;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -64,7 +65,7 @@ public class FileUtils {
                 Cursor cursor = context.getContentResolver().query(uri, new String[]{OpenableColumns.DISPLAY_NAME}, null, null, null);
                 try {
                     if (cursor != null && cursor.moveToFirst()) {
-                        result = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
+                        result = cursor.getString(cursor.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME));
                     }
                 } finally {
                     cursor.close();
@@ -128,7 +129,7 @@ public class FileUtils {
         FileOutputStream fos = null;
         final FileInfo.Builder fileInfo = new FileInfo.Builder();
         final String fileName = FileUtils.getFileName(uri, context);
-        final String path = context.getCacheDir().getAbsolutePath() + "/file_picker/" + (fileName != null ? fileName : new Random().nextInt(100000));
+        final String path = context.getCacheDir().getAbsolutePath() + "/file_picker/" + (fileName != null ? fileName : System.currentTimeMillis());
 
         final File file = new File(path);
 
@@ -172,11 +173,13 @@ public class FileUtils {
         fileInfo
                 .withPath(path)
                 .withName(fileName)
+                .withUri(uri)
                 .withSize(Long.parseLong(String.valueOf(file.length())));
 
         return fileInfo.build();
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @Nullable
     @SuppressWarnings("deprecation")
     public static String getFullPathFromTreeUri(@Nullable final Uri treeUri, Context con) {

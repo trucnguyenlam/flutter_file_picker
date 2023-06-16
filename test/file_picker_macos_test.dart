@@ -16,24 +16,24 @@ void main() {
 
       expect(
         picker.fileTypeToFileFilter(FileType.audio, null),
-        equals('"", "mp3", "wav", "midi", "ogg", "aac"'),
+        equals('"aac", "midi", "mp3", "ogg", "wav"'),
       );
 
       expect(
         picker.fileTypeToFileFilter(FileType.image, null),
-        equals('"", "jpg", "jpeg", "bmp", "gif", "png"'),
+        equals('"bmp", "gif", "jpeg", "jpg", "png"'),
       );
 
       expect(
         picker.fileTypeToFileFilter(FileType.media, null),
         equals(
-          '"", "webm", "mpeg", "mkv", "mp4", "avi", "mov", "flv", "jpg", "jpeg", "bmp", "gif", "png"',
+          '"avi", "flv", "mkv", "mov", "mp4", "mpeg", "webm", "wmv", "bmp", "gif", "jpeg", "jpg", "png"',
         ),
       );
 
       expect(
         picker.fileTypeToFileFilter(FileType.video, null),
-        equals('"", "webm", "mpeg", "mkv", "mp4", "avi", "mov", "flv"'),
+        equals('"avi", "flv", "mkv", "mov", "mp4", "mpeg", "webm", "wmv"'),
       );
     });
 
@@ -42,6 +42,12 @@ void main() {
         () {
       final picker = FilePickerMacOS();
 
+      // TODO: the first empty file type ("", ) is required in some cases, e.g.
+      // when filtering for *.dart and other special file types. Unfortunately,
+      // the empty file type enables the selection of files without extension.
+      // In other cases, e.g. when filtering for *.png files, it isn't required
+      // to provide the empty file type. We need to find a solution to make the
+      // filter work without having to provide an empty file type first.
       expect(
         picker.fileTypeToFileFilter(FileType.custom, ['dart']),
         equals('"", "dart"'),
@@ -189,6 +195,40 @@ void main() {
         equals('/Volumes/TAILS 4.20 - 202/EFI/debian/grub/x86_64-efi'),
       );
     });
+
+    test(
+        'should interpret the result of picking filenames that contain blanks and commas',
+        () {
+      final picker = FilePickerMacOS();
+
+      final filePaths = picker.resultStringToFilePaths(
+        'alias Macintosh:Users:JohnDoe:test, test.csv, alias macOS Base System:bin:unicorn , generator.sh',
+      );
+
+      expect(filePaths.length, equals(2));
+      expect(
+        filePaths[0],
+        equals('/Volumes/Macintosh/Users/JohnDoe/test, test.csv'),
+      );
+      expect(
+        filePaths[1],
+        equals('/Volumes/macOS Base System/bin/unicorn , generator.sh'),
+      );
+    });
+
+    test('should interpret the result of the save file dialog', () {
+      final picker = FilePickerMacOS();
+
+      final filePaths = picker.resultStringToFilePaths(
+        'file macOS:Users:JohnDoe:Desktop:bill.pdf',
+      );
+
+      expect(filePaths.length, equals(1));
+      expect(
+        filePaths[0],
+        equals('/Volumes/macOS/Users/JohnDoe/Desktop/bill.pdf'),
+      );
+    });
   });
 
   group('generateCommandLineArguments()', () {
@@ -203,7 +243,7 @@ void main() {
 
       expect(
         cliArguments.join(' '),
-        equals('-e choose file of type {} with prompt "Select a file:"'),
+        equals('-e choose file with prompt "Select a file:"'),
       );
     });
 
@@ -237,7 +277,7 @@ void main() {
       expect(
         cliArguments.join(' '),
         equals(
-          '-e choose file of type {} with multiple selections allowed with prompt "Select files:"',
+          '-e choose file with multiple selections allowed with prompt "Select files:"',
         ),
       );
     });
@@ -292,6 +332,61 @@ void main() {
       expect(
         cliArguments.join(' '),
         equals('-e choose folder with prompt "Select a directory:"'),
+      );
+    });
+
+    test(
+        'should generate the arguments for picking a file when an initial directory is given',
+        () {
+      final picker = FilePickerMacOS();
+
+      final cliArguments = picker.generateCommandLineArguments(
+        'Pick a file:',
+        initialDirectory: '/Users/john/Desktop',
+      );
+
+      expect(
+        cliArguments.join(' '),
+        equals(
+            '-e choose file default location "/Users/john/Desktop" with prompt "Pick a file:"'),
+      );
+    });
+
+    test(
+        'should generate the arguments for picking a directory when an initial directory is given',
+        () {
+      final picker = FilePickerMacOS();
+
+      final cliArguments = picker.generateCommandLineArguments(
+        'Pick directory:',
+        fileName: 'output.pdf',
+        initialDirectory: '/Users/john/workspace',
+        pickDirectory: true,
+      );
+
+      expect(
+        cliArguments.join(' '),
+        equals(
+            '-e choose folder default location "/Users/john/workspace" with prompt "Pick directory:"'),
+      );
+    });
+
+    test(
+        'should generate the arguments for saving a file when an initial directory is given',
+        () {
+      final picker = FilePickerMacOS();
+
+      final cliArguments = picker.generateCommandLineArguments(
+        'Save as:',
+        fileName: 'output.pdf',
+        initialDirectory: '/Users/john/Downloads',
+        saveFile: true,
+      );
+
+      expect(
+        cliArguments.join(' '),
+        equals(
+            '-e choose file name default name "output.pdf" default location "/Users/john/Downloads" with prompt "Save as:"'),
       );
     });
   });
