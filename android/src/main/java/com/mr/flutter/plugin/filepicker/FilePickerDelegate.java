@@ -15,6 +15,7 @@ import android.os.Message;
 import android.provider.DocumentsContract;
 import android.util.Log;
 
+import androidx.annotation.RequiresApi;
 import androidx.annotation.VisibleForTesting;
 import androidx.core.app.ActivityCompat;
 
@@ -41,6 +42,13 @@ public class FilePickerDelegate implements PluginRegistry.ActivityResultListener
     private String[] allowedExtensions;
     private EventChannel.EventSink eventSink;
 
+    @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
+    public static final String[] STORAGE_PERMISSIONS_33 = {
+            Manifest.permission.READ_MEDIA_IMAGES,
+            Manifest.permission.READ_MEDIA_AUDIO,
+            Manifest.permission.READ_MEDIA_VIDEO
+    };
+
     public FilePickerDelegate(final Activity activity) {
         this(
                 activity,
@@ -57,6 +65,10 @@ public class FilePickerDelegate implements PluginRegistry.ActivityResultListener
                         ActivityCompat.requestPermissions(activity, new String[]{permissionName}, requestCode);
                     }
 
+                    @Override
+                    public void askForPermissions(String[] permissions, final int requestCode) {
+                        ActivityCompat.requestPermissions(activity, permissions, requestCode);
+                    }
                 }
         );
     }
@@ -221,7 +233,7 @@ public class FilePickerDelegate implements PluginRegistry.ActivityResultListener
 
     @SuppressWarnings("deprecation")
     private ArrayList<Parcelable> getSelectedItems(Bundle bundle){
-        if(Build.VERSION.SDK_INT >= 33){
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU){
             return bundle.getParcelableArrayList("selectedItems", Parcelable.class);
         }
 
@@ -290,9 +302,17 @@ public class FilePickerDelegate implements PluginRegistry.ActivityResultListener
         // `READ_EXTERNAL_STORAGE` permission is not needed since SDK 33 (Android 13 or higher).
         // `READ_EXTERNAL_STORAGE` & `WRITE_EXTERNAL_STORAGE` are no longer meant to be used, but classified into granular types.
         // Reference: https://developer.android.com/about/versions/13/behavior-changes-13
-        if (Build.VERSION.SDK_INT < 33) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
             if (!this.permissionManager.isPermissionGranted(Manifest.permission.READ_EXTERNAL_STORAGE)) {
                 this.permissionManager.askForPermission(Manifest.permission.READ_EXTERNAL_STORAGE, REQUEST_CODE);
+                return;
+            }
+        } else {
+            if (!this.permissionManager.isPermissionGranted(Manifest.permission.READ_MEDIA_IMAGES) ||
+                    !this.permissionManager.isPermissionGranted(Manifest.permission.READ_MEDIA_AUDIO) ||
+                    !this.permissionManager.isPermissionGranted(Manifest.permission.READ_MEDIA_VIDEO)
+            ) {
+                this.permissionManager.askForPermissions(STORAGE_PERMISSIONS_33, REQUEST_CODE);
                 return;
             }
         }
@@ -354,6 +374,8 @@ public class FilePickerDelegate implements PluginRegistry.ActivityResultListener
         boolean isPermissionGranted(String permissionName);
 
         void askForPermission(String permissionName, int requestCode);
+
+        void askForPermissions(String[] permissions, int requestCode);
     }
 
 }
