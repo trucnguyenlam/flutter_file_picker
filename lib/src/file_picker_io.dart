@@ -25,11 +25,13 @@ class FilePickerIO extends FilePicker {
     FileType type = FileType.any,
     List<String>? allowedExtensions,
     String? dialogTitle,
+    String? initialDirectory,
     Function(FilePickerStatus)? onFileLoading,
     bool? allowCompression = true,
     bool allowMultiple = false,
     bool? withData = false,
     bool? withReadStream = false,
+    bool lockParentWindow = false,
   }) {
     if (Platform.isAndroid) {
       return _getPath(
@@ -51,9 +53,13 @@ class FilePickerIO extends FilePicker {
       _channel.invokeMethod<bool>('clear');
 
   @override
-  Future<Map<String, String>?> getDirectoryPath({String? dialogTitle, String? initialUri}) async {
+  Future<Map<String, String>?> getDirectoryPath({
+    String? dialogTitle,
+    bool lockParentWindow = false,
+    String? initialDirectory,
+  }) async {
     try {
-      final ret = await _channel.invokeMethod('dir', {'initialUri': initialUri});
+      final ret = await _channel.invokeMethod('dir', {'initialUri': initialDirectory});
       if (Platform.isAndroid) {
         return Map<String, String>.from(ret);
       } else if (Platform.isIOS) {
