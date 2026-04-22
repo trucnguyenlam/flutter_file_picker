@@ -15,9 +15,10 @@ dependencies:
   plugin_platform_interface: ^2.1.8
   ffi: ^2.0.1
   path: ^1.8.2
-  win32: ^5.5.1
+  win32: ^5.5.0
   cross_file: ^0.3.3+7
-  web: ^0.5.1
+  web:
+    path: ../web/web
 
 dev_dependencies:
   lints: ^3.0.0
