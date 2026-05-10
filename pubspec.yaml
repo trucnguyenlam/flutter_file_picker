@@ -16,7 +16,8 @@ dependencies:
   ffi: ^2.0.1
   path: ^1.8.2
   win32: ^5.5.0
-  cross_file: ^0.3.3+7
+  cross_file: # ^0.3.3+7
+    path: ../packages/packages/cross_file
   web:
     path: ../web/web
 
